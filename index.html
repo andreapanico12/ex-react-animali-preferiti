@@ -47,6 +47,34 @@
         const [animali, setAnimali] = useState([]);
         const [showModal, setShowModal] = useState(false);
         const [newAnimal, setNewAnimal] = useState("");
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+
+        const fetchAnimalData = async (animalName) => {
+          setLoading(true);
+          setError("");
+          try {
+            const response = await fetch(
+              `https://boolean-spec-frontend.vercel.app/freetestapi/animals?search=${animalName}`
+            );
+            const data = await response.json();
+
+            if (data.length > 0) {
+              const animal = data[0];
+              const newAnimal = {
+                name: animal.name,
+                description:
+                  animal.description || "descrizione non disponibile",
+                image: animal.image || "https://via.placeholder.com/150",
+              };
+              setAnimali((prevAnimali) => [...prevAnimali, newAnimal]);
+            }
+          } catch (err) {
+            setError("Errore durante la ricerca dell'animale");
+          } finally {
+            setLoading(false);
+          }
+        };
 
         const handleAddClick = () => {
           setShowModal(true);
@@ -54,8 +82,8 @@
 
         const handleConfirm = () => {
           const trimmedAnimal = newAnimal.trim();
-          if (trimmedAnimal && !animali.includes(trimmedAnimal)) {
-            setAnimali([...animali, trimmedAnimal]);
+          if (trimmedAnimal) {
+            fetchAnimalData(trimmedAnimal);
           }
           setNewAnimal("");
           setShowModal(false);
@@ -72,7 +100,17 @@
               <summary>Animali</summary>
               <ul>
                 {animali.map((animale, index) => (
-                  <li key={index}>{animale}</li>
+                  <li key={index}>
+                    <div>
+                      <h3>{animale.name}</h3>
+                      <img
+                        src={animale.image}
+                        alt={animale.name}
+                        style={{ width: "100px", height: "auto" }}
+                      ></img>
+                      <p>{animale.description}</p>
+                    </div>
+                  </li>
                 ))}
               </ul>
             </details>
